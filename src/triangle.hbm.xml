@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <class name="program.Triangle" table="Triangle">
+
+        <id name="id" column="ID">
+            <generator class="native" />
+        </id>
+
+        <property name="p1">
+            <column name="P1"/>
+        </property>
+
+        <property name="p2">
+            <column name="P2"/>
+        </property>
+
+        <property name="p3">
+            <column name="P3"/>
+        </property>
+
+    </class>
+</hibernate-mapping>

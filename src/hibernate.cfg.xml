@@ -1,0 +1,32 @@
+<!DOCTYPE hibernate-configuration PUBLIC
+"-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-configuration-3.0.dtd">
+
+<hibernate-configuration>
+    <session-factory>
+
+        <!-- hibernate dialect -->
+        <property name="hibernate.dialect">org.hibernate.dialect.MySQLInnoDBDialect</property>
+
+
+        <property name="hibernate.connection.driver_class">com.mysql.jdbc.Driver</property>
+        <property name="hibernate.connection.url">jdbc:mysql://localhost/praktyki</property>
+        <property name="hibernate.connection.username">root</property>
+        <property name="hibernate.connection.password">password</property>
+        <property name="transaction.factory_class">org.hibernate.transaction.JDBCTransactionFactory</property>
+	    <property name="hibernate.jdbc.batch_size">30</property>
+
+        <!-- Simple memory-only cache -->
+        <property name="hibernate.cache.provider_class">org.hibernate.cache.HashtableCacheProvider</property>
+
+        <!-- Enable Hibernate's automatic session context management -->
+        <property name="current_session_context_class">thread</property>
+
+        <!-- ############################################ -->
+        <!-- # mapping files with external dependencies # -->
+        <!-- ############################################ -->
+
+        <mapping resource="point.hbm.xml" />
+		<mapping resource="triangle.hbm.xml" />
+    </session-factory>
+</hibernate-configuration>
