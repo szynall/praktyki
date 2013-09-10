@@ -57,9 +57,6 @@ public class Parser extends DefaultHandler {
            });
 
            final JTextComponent textpane = new JTextArea();
-           JLabel resizeLabel = new JLabel();
-           resizeLabel.setText("Przeskaluj Z (1%-100%):");		//u¿ywane do okreœlenia stopnia skalowania Z
-           resizeText.setText("100");
            
            final JScrollPane pane = new JScrollPane(textpane);
            pane.setPreferredSize(new Dimension(600, 600));
@@ -78,7 +75,7 @@ public class Parser extends DefaultHandler {
 			   public void actionPerformed(ActionEvent e) 
 			   {
 				   //uruchomienie trangulacji
-				   handler.triangulate(textpane,resizeText);
+				   handler.triangulate(textpane);
 			   }
            });
            
@@ -132,8 +129,6 @@ public class Parser extends DefaultHandler {
            JPanel buttonpanel = new JPanel();
            buttonpanel.add(filebutton);
            buttonpanel.add(startbutton);
-           buttonpanel.add(resizeLabel);
-           buttonpanel.add(resizeText);
            
            JPanel panel = new JPanel();
            panel.setLayout(new BorderLayout());
@@ -157,7 +152,7 @@ public class Parser extends DefaultHandler {
                      String qName, Attributes attributes) throws SAXException {
               temp = "";
               //jest znaleŸliœmy znacznik <P> utwórz nowy obiekt Point i zwiêksz licznik
-              if (qName.equalsIgnoreCase("P")) {
+              if (qName.equalsIgnoreCase("GeoPoint")) {
                      point = new Point();
                      point.setId(cnt);
                      cnt++;
@@ -168,12 +163,12 @@ public class Parser extends DefaultHandler {
        public void endElement(String uri, String localName, String qName) throws SAXException
        {
     	   //jak znajdziemy koniec </P> ³adujemy dane x,y,z
-		  if (qName.equalsIgnoreCase("P")) {
+		  if (qName.equalsIgnoreCase("GeoPoint")) {
 		         pointsList.add(point);
 		  } else if (qName.equalsIgnoreCase("x")) {
-		         point.setX(Integer.parseInt(temp));
+		         point.setX(Double.parseDouble(temp));
 		  } else if (qName.equalsIgnoreCase("y")) {
-		         point.setY(Integer.parseInt(temp));
+		         point.setY(Double.parseDouble(temp));
 		  } else if (qName.equalsIgnoreCase("z")) {
 		         point.setZ(Integer.parseInt(temp));
 		  }
@@ -187,7 +182,7 @@ public class Parser extends DefaultHandler {
        }
        
        //metoda ta wykonuje triangulacje, zapisy do bazy i do pliku
-       private void triangulate(JTextComponent panel, JTextField resizeText) {
+       private void triangulate(JTextComponent panel) {
         	  long start = System.currentTimeMillis();
               ListIterator<Point> it = pointsList.listIterator();	//iterator po punktach
               Point nextPoint;
@@ -210,28 +205,11 @@ public class Parser extends DefaultHandler {
             	  return;
               
               //przegl¹damy listê a¿ znajdziemy dwie nowe wartoœci X i Y, to da nam szerokoœæ
-        	  while(it.hasNext())
-        	  {
-        		  width++;
-        		  nextPoint = it.next();
-        		  if(firstPoint.getX()!=nextPoint.getX())
-        		  {
-        			  difx=true;
-        		  }
-        		  if(firstPoint.getY()!=nextPoint.getY())
-        		  {
-        			  dify=true;
-        		  } 
-        		  if (difx && dify)
-        		  {
-        			  width--;
-        			  break;
-        		  }
-              }
         	  it = pointsList.listIterator();
         	  
         	  //obliczamy d³ugoœæ
-        	  length = (int) ((pointsList.get(pointsList.size()-1).getId()+1)/width);
+        	  length = 1201;
+        	  width = 1201;
         	  ((JTextArea) panel).append("D³ugoœæ siatki: "+ length+"\n");
         	  ((JTextArea) panel).append("Szerokoœæ siatki: "+ width+"\n");
         	  
@@ -260,7 +238,7 @@ public class Parser extends DefaultHandler {
 						  else		//dla zerowej kolumny szukamy nastêpnego punktu który bêdzie nieujemny
 						  {
 							 int przesuniecie=0;
-							 double tempZ;
+							 int tempZ;
 							 while(true)
 							 {
 								 if((tempZ=it.next().getZ())>=0L)
@@ -275,17 +253,13 @@ public class Parser extends DefaultHandler {
 						  }
 					  }
 					  else
-						  p.setZ(p.getZ()*Double.parseDouble(resizeText.getText())/100);	//skalujemy Z
+						  p.setZ(p.getZ());	//skalujemy Z
 					  out.write(p.toString());		//zapisz punkty do pliku .obj
 					  lenght_cnt++;
 				  }
 				  
 				  out.write("\n");
-				  
-				  //tempowy plik do zapisywania danych o trójk¹tach
-				  path2 = System.getProperty("user.dir")+"\\triangles.txt";
-	    		  FileWriter fstream2 = new FileWriter(path2);
-				  BufferedWriter out2 = new BufferedWriter(fstream2);
+				  System.out.println(length+" "+width);
 	        	  for (i=0;i<length-1;i++)
 	        	  {
 	        		  for(j=0;j<width-1;j++)
@@ -295,30 +269,26 @@ public class Parser extends DefaultHandler {
 	        			  if( diagonalLenght( pointsList.get(width*i+j), pointsList.get(width*(i+1)+j+1) ) > diagonalLenght( pointsList.get(width*i+j+1), pointsList.get(width*(i+1)+j) ) )
 	        			  {
 	        				 t = new Triangle(cnt, pointsList.get(width*i+j), pointsList.get(width*(i+1)+j), pointsList.get(width*i+j+1));
-	        				 out2.write(t.getTriangle());
 	        				 triangleList.add(t);
 	        				 cnt++;
 	        				 
 	        				 t = new Triangle(cnt, pointsList.get(width*i+j+1), pointsList.get(width*(i+1)+j+1), pointsList.get(width*(i+1)+j));
-	        				 out2.write(t.getTriangle());
 	        				 triangleList.add(t);
 	        				 cnt++;
 	        			  }
 	        			  else
 	        			  {
 	        				 t = new Triangle(cnt, pointsList.get(width*i+j), pointsList.get(width*i+j+1), pointsList.get(width*(i+1)+j+1));
-	        				 out2.write(t.getTriangle());
 	        				 triangleList.add(t);
 	        				 cnt++;
 	        				 
 	        				 t = new Triangle(cnt, pointsList.get(width*i+j), pointsList.get(width*(i+1)+j+1), pointsList.get(width*(i+1)+j));
-	        				 out2.write(t.getTriangle());
 	        				 triangleList.add(t);	        				
 	        				 cnt++;	 
 	        			  }
 	        		  }
 	        	  }
-	        	out2.close();
+	        	System.out.println("size: "+triangleList.size());
 	        	Iterator<Triangle> iteratorTriangle = triangleList.iterator();
 	        	//zapisz trójk¹ty do pliku .obj
 	        	while(iteratorTriangle.hasNext())
@@ -326,6 +296,34 @@ public class Parser extends DefaultHandler {
 	        		t = iteratorTriangle.next();
 	        		out.write("f " + t.getP1().getId()+" "+t.getP2().getId()+" "+t.getP3().getId()+"\n");
 	        	}
+	        	iteratorTriangle = triangleList.iterator();
+	        	//zapisz trójk¹ty do pliku .obj
+	        	while(iteratorTriangle.hasNext())
+	        	{
+	        		t = iteratorTriangle.next();
+	        		
+	        		Point n1,n2,n3, v1,v2;
+					v1 = t.getP3().sub(t.getP1());
+					v2 = t.getP2().sub(t.getP1());					
+					n1 = v1.cross(v2);
+					n1 = n1.normalize();
+					
+					v1 = t.getP1().sub(t.getP2());
+					v2 = t.getP3().sub(t.getP2());
+					n2 = v1.cross(v2);	
+					n2 = n2.normalize();
+					
+					v1 = t.getP2().sub(t.getP3());
+					v2 = t.getP1().sub(t.getP3());
+					n3 = v1.cross(v2);	
+					n3 = n3.normalize();
+					
+					out.write("vn "+(float)n1.getX()+" "+(float)n1.getY()+" "+(float)n1.z2+"\n");
+					out.write("vn "+(float)n2.getX()+" "+(float)n2.getY()+" "+(float)n2.z2+"\n");
+					out.write("vn "+(float)n3.getX()+" "+(float)n3.getY()+" "+(float)n3.z2+"\n");
+	        	}
+	        	
+	        	
 	        	
 	        	out.close();
 				} 
@@ -338,40 +336,6 @@ public class Parser extends DefaultHandler {
 				((JTextArea) panel).append("Triangluacja: "+ (end-start) +"ms.\n");
 				((JTextArea) panel).append("Zapisano w "+ path + "\n");
 			  	
-				
-				Connection con = null;
-				PreparedStatement pst = null;
-				
-				start = System.currentTimeMillis();
-				String url = "jdbc:mysql://localhost:3306/praktyki";
-				String user = "root";
-				String password = "password";
-				try {
-				    con = DriverManager.getConnection(url, user, password);
-			     	pst = con.prepareStatement("LOAD DATA LOCAL INFILE ? INTO TABLE triangle FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n' (x1,y1,z1,x2,y2,z2,x3,y3,z3)");
-				    pst.setString(1,path2);   
-				    pst.executeUpdate();
-				
-				} catch (SQLException ex) {
-					ex.printStackTrace(System.err);
-				    System.err.println("SQLState: " + ((SQLException)ex).getSQLState());		
-				    System.err.println("Error Code: " + ((SQLException)ex).getErrorCode());		
-				    System.err.println("Message: " + ex.getMessage());				
-				} finally {
-				    try {
-				        if (pst != null) {
-				            pst.close();
-				        }
-				        if (con != null) {
-				            con.close();
-				        }
-
-				    } catch (SQLException ex) {
-				    	System.out.print("bb\n");
-				    }
-				}
-				end = System.currentTimeMillis();
-				((JTextArea) panel).append("Zapisano do bazy w: " + (end-start)/1000 +"s.\n");
 				
 				//usun plik tempowy
 				File f = new File(path2);
