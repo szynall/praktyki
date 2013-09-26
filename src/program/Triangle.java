@@ -18,7 +18,6 @@ public class Triangle {
    //metoda zwraca wspó³rzêdne kolejnych punktów
    public String getTriangle() {
        StringBuffer sb = new StringBuffer();
-       sb.append(p1.getXYZ() + "," + p2.getXYZ() + "," + p3.getXYZ()+"\n");
        return sb.toString();
    }
 
